@@ -63,7 +63,7 @@ export default function AreaItem({
     <div className="bg-white rounded-lg shadow-md mb-4 border-2 border-green-500">
       <div
         className="flex items-center gap-2 p-4 cursor-pointer bg-green-50 hover:bg-green-100 transition-colors"
-        onClick={() => handleChange('collapsed', !area.collapsed)}
+        onClick={() => onChange({ ...area, collapsed: !area.collapsed })}
       >
         {area.collapsed ? <ChevronRight size={20} /> : <ChevronDown size={20} />}
         <h3 className="text-lg font-bold text-green-900">{area.name}</h3>

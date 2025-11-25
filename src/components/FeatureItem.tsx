@@ -75,7 +75,7 @@ export default function FeatureItem({ feature, onChange, availableMetrics }: Fea
     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
       <div
         className="flex items-center gap-2 cursor-pointer mb-4"
-        onClick={() => handleChange('collapsed', !feature.collapsed)}
+        onClick={() => onChange({ ...feature, collapsed: !feature.collapsed })}
       >
         {feature.collapsed ? <ChevronRight size={18} /> : <ChevronDown size={18} />}
         <h5 className="font-semibold text-gray-800">
@@ -226,44 +226,50 @@ export default function FeatureItem({ feature, onChange, availableMetrics }: Fea
                 { key: 'releaseProcessSpeed', label: 'Release process speed' },
                 { key: 'bugWeight', label: 'Bug weight / defect escape rate' },
                 { key: 'serviceUptime', label: 'Service uptime' },
-              ].map(({ key, label }) => (
-                <div key={key} className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">
-                      {label} (Plan)
-                    </label>
-                    <input
-                      type="text"
-                      value={feature.techMetrics[key as keyof typeof feature.techMetrics].plan}
-                      onChange={(e) => handleTechMetricChange(key, 'plan', e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
-                      placeholder="План"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Fact</label>
-                    <input
-                      type="text"
-                      value={feature.techMetrics[key as keyof typeof feature.techMetrics].fact}
-                      onChange={(e) => handleTechMetricChange(key, 'fact', e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
-                      placeholder="Факт"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">
-                      Deviation
-                    </label>
-                    <input
-                      type="text"
-                      value={feature.techMetrics[key as keyof typeof feature.techMetrics].deviation}
-                      onChange={(e) => handleTechMetricChange(key, 'deviation', e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
-                      placeholder="Отклонение"
-                    />
-                  </div>
-                </div>
-              ))}
+              ].map(({ key, label }) => {
+                const metric = feature.techMetrics[key as keyof typeof feature.techMetrics];
+                if ('plan' in metric) {
+                  return (
+                    <div key={key} className="grid grid-cols-3 gap-2">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          {label} (Plan)
+                        </label>
+                        <input
+                          type="text"
+                          value={metric.plan}
+                          onChange={(e) => handleTechMetricChange(key, 'plan', e.target.value)}
+                          className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                          placeholder="План"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Fact</label>
+                        <input
+                          type="text"
+                          value={metric.fact}
+                          onChange={(e) => handleTechMetricChange(key, 'fact', e.target.value)}
+                          className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                          placeholder="Факт"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          Deviation
+                        </label>
+                        <input
+                          type="text"
+                          value={metric.deviation}
+                          onChange={(e) => handleTechMetricChange(key, 'deviation', e.target.value)}
+                          className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                          placeholder="Отклонение"
+                        />
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })}
 
               <div className="grid grid-cols-2 gap-2">
                 <div>

@@ -1,14 +1,12 @@
-import { ChevronDown, ChevronRight, Edit2, Plus, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import { AppData, Area, Feature } from '../types';
 import { useState } from 'react';
 
 interface CompactTableViewProps {
   data: AppData;
-  onProductLevelChange: (productLevel: typeof data.productLevel) => void;
   onAreaChange: (areaId: string, updatedArea: Area) => void;
   onFeatureChange: (areaId: string, featureId: string, updatedFeature: Feature) => void;
   onAddFeature: (areaId: string) => void;
-  onAddLaggingMetric: (areaId: string) => void;
   selectedArea: string;
   selectedMonth: string;
   showUnfilledOnly: boolean;
@@ -16,17 +14,14 @@ interface CompactTableViewProps {
 
 export default function CompactTableView({
   data,
-  onProductLevelChange,
   onAreaChange,
   onFeatureChange,
   onAddFeature,
-  onAddLaggingMetric,
   selectedArea,
   selectedMonth,
   showUnfilledOnly,
 }: CompactTableViewProps) {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-  const [editingCell, setEditingCell] = useState<string | null>(null);
 
   const toggleRow = (id: string) => {
     const newExpanded = new Set(expandedRows);

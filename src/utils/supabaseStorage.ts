@@ -1,10 +1,10 @@
 import { supabase } from '../lib/supabase';
 import { AppData } from '../types';
-import { loadData as loadLocalData } from './storage';
+import { loadData as getInitialData } from './storage';
 
 const RECORD_ID = 1;
 
-export const loadDataFromSupabase = async (): Promise<AppData | null> => {
+export const loadDataFromSupabase = async (): Promise<AppData> => {
   try {
     const { data, error } = await supabase
       .from('product_tree_data')
@@ -14,17 +14,19 @@ export const loadDataFromSupabase = async (): Promise<AppData | null> => {
 
     if (error) {
       console.error('Error loading from Supabase:', error);
-      return null;
+      return getInitialData();
     }
 
     if (data && data.data && Object.keys(data.data).length > 0) {
       return data.data as AppData;
     }
 
-    return null;
+    const initialData = getInitialData();
+    await saveDataToSupabase(initialData);
+    return initialData;
   } catch (error) {
     console.error('Error loading from Supabase:', error);
-    return null;
+    return getInitialData();
   }
 };
 
@@ -52,19 +54,6 @@ export const saveDataToSupabase = async (appData: AppData): Promise<boolean> => 
     console.error('Error saving to Supabase:', error);
     return false;
   }
-};
-
-export const migrateLocalStorageToSupabase = async (): Promise<AppData> => {
-  const localData = loadLocalData();
-
-  const supabaseData = await loadDataFromSupabase();
-
-  if (!supabaseData || Object.keys(supabaseData).length === 0) {
-    await saveDataToSupabase(localData);
-    return localData;
-  }
-
-  return supabaseData;
 };
 
 export const subscribeToChanges = (

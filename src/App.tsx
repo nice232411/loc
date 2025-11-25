@@ -9,7 +9,7 @@ import {
   removeProductLevelMetric,
 } from './utils/storage';
 import {
-  migrateLocalStorageToSupabase,
+  loadDataFromSupabase,
   saveDataToSupabase,
   subscribeToChanges,
 } from './utils/supabaseStorage';
@@ -38,7 +38,7 @@ function App() {
 
     const initializeData = async () => {
       try {
-        const initialData = await migrateLocalStorageToSupabase();
+        const initialData = await loadDataFromSupabase();
         setData(initialData);
         setIsOnline(true);
 
@@ -99,7 +99,6 @@ function App() {
   const handleReset = async () => {
     if (confirm('Вы уверены, что хотите сбросить все данные? Это действие нельзя отменить.')) {
       const emptyData = loadData();
-      localStorage.clear();
       setData(emptyData);
       await saveDataToSupabase(emptyData);
       setLastSaved(null);
@@ -343,11 +342,9 @@ function App() {
         {viewMode === 'compact' ? (
           <CompactTableView
             data={data}
-            onProductLevelChange={handleProductLevelChange}
             onAreaChange={handleAreaChange}
             onFeatureChange={handleFeatureChange}
             onAddFeature={handleAddFeature}
-            onAddLaggingMetric={handleAddLaggingMetricToArea}
             selectedArea={selectedArea}
             selectedMonth={selectedMonth}
             showUnfilledOnly={showUnfilledOnly}
