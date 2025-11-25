@@ -59,11 +59,44 @@ const getInitialData = (): AppData => ({
   productLevelCollapsed: false,
 });
 
+const migrateData = (data: any): AppData => {
+  if (data.productLevel && data.productLevel.metrics && !Array.isArray(data.productLevel.metrics)) {
+    const oldMetrics = data.productLevel.metrics;
+    data.productLevel.metrics = [
+      { id: crypto.randomUUID(), name: 'MAU', value: oldMetrics.mau || '' },
+      { id: crypto.randomUUID(), name: 'LTV', value: oldMetrics.ltv || '' },
+      { id: crypto.randomUUID(), name: 'Number of paying users', value: oldMetrics.payingUsers || '' },
+      { id: crypto.randomUUID(), name: 'Average check', value: oldMetrics.averageCheck || '' },
+      { id: crypto.randomUUID(), name: 'Retention', value: oldMetrics.retention || '' },
+    ];
+  }
+
+  if (data.areas) {
+    data.areas = data.areas.map((area: any) => {
+      if (!area.linkedToProductMetrics) {
+        area.linkedToProductMetrics = [];
+      }
+      if (area.laggingMetrics) {
+        area.laggingMetrics = area.laggingMetrics.map((metric: any) => {
+          if (!metric.linkedToProductMetrics) {
+            metric.linkedToProductMetrics = [];
+          }
+          return metric;
+        });
+      }
+      return area;
+    });
+  }
+
+  return data as AppData;
+};
+
 export const loadData = (): AppData => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      return migrateData(parsed);
     }
   } catch (error) {
     console.error('Error loading data:', error);
