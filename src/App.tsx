@@ -1,14 +1,18 @@
-import { useState, useEffect } from 'react';
-import { Save, Eye, RotateCcw, Grid3x3, LayoutList } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Save, Eye, RotateCcw, Grid3x3, LayoutList, Cloud, CloudOff } from 'lucide-react';
 import { AppData, Area, Feature } from './types';
 import {
   loadData,
-  saveData,
   addFeatureToArea,
   addLaggingMetric,
   addProductLevelMetric,
   removeProductLevelMetric,
 } from './utils/storage';
+import {
+  migrateLocalStorageToSupabase,
+  saveDataToSupabase,
+  subscribeToChanges,
+} from './utils/supabaseStorage';
 import ProductLevel from './components/ProductLevel';
 import AreaItem from './components/AreaItem';
 import FilterPanel from './components/FilterPanel';
@@ -25,25 +29,79 @@ function App() {
   const [showVisualization, setShowVisualization] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('compact');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isOnline, setIsOnline] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const isSyncing = useRef(false);
 
   useEffect(() => {
-    const autoSave = setInterval(() => {
-      saveData(data);
-      setLastSaved(new Date());
-    }, 30000);
+    let unsubscribe: (() => void) | undefined;
+
+    const initializeData = async () => {
+      try {
+        const initialData = await migrateLocalStorageToSupabase();
+        setData(initialData);
+        setIsOnline(true);
+
+        unsubscribe = subscribeToChanges((newData) => {
+          if (!isSyncing.current) {
+            setData(newData);
+          }
+        });
+      } catch (error) {
+        console.error('Failed to initialize Supabase:', error);
+        setIsOnline(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeData();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const autoSave = setInterval(async () => {
+      isSyncing.current = true;
+      const success = await saveDataToSupabase(data);
+      isSyncing.current = false;
+
+      if (success) {
+        setLastSaved(new Date());
+        setIsOnline(true);
+      } else {
+        setIsOnline(false);
+      }
+    }, 2000);
 
     return () => clearInterval(autoSave);
-  }, [data]);
+  }, [data, isLoading]);
 
-  const handleSave = () => {
-    saveData(data);
-    setLastSaved(new Date());
+  const handleSave = async () => {
+    isSyncing.current = true;
+    const success = await saveDataToSupabase(data);
+    isSyncing.current = false;
+
+    if (success) {
+      setLastSaved(new Date());
+      setIsOnline(true);
+    } else {
+      setIsOnline(false);
+    }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (confirm('Вы уверены, что хотите сбросить все данные? Это действие нельзя отменить.')) {
+      const emptyData = loadData();
       localStorage.clear();
-      setData(loadData());
+      setData(emptyData);
+      await saveDataToSupabase(emptyData);
       setLastSaved(null);
     }
   };
@@ -145,16 +203,44 @@ function App() {
     });
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Загрузка данных...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <header className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Продуктовое дерево метрик
-          </h1>
-          <p className="text-gray-600">
-            Управление продуктовыми эриями, метриками и фичами мастер-плана
-          </p>
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                Продуктовое дерево метрик
+              </h1>
+              <p className="text-gray-600">
+                Управление продуктовыми эриями, метриками и фичами мастер-плана
+              </p>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg shadow-sm border">
+              {isOnline ? (
+                <>
+                  <Cloud size={20} className="text-green-600" />
+                  <span className="text-sm text-green-600 font-medium">Online</span>
+                </>
+              ) : (
+                <>
+                  <CloudOff size={20} className="text-red-600" />
+                  <span className="text-sm text-red-600 font-medium">Offline</span>
+                </>
+              )}
+            </div>
+          </div>
         </header>
 
         <div className="flex flex-wrap gap-3 mb-6">
@@ -226,9 +312,21 @@ function App() {
           </button>
         </div>
 
-        {lastSaved && (
-          <div className="mb-4 text-sm text-gray-600">
-            Последнее сохранение: {lastSaved.toLocaleTimeString('ru-RU')}
+        {lastSaved && isOnline && (
+          <div className="mb-4 flex items-center gap-2 text-sm">
+            <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-gray-600">
+              Синхронизировано: {lastSaved.toLocaleTimeString('ru-RU')}
+            </span>
+          </div>
+        )}
+
+        {!isOnline && (
+          <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-center gap-2">
+            <CloudOff size={18} className="text-yellow-600" />
+            <span className="text-sm text-yellow-800">
+              Работа в оффлайн режиме. Изменения будут синхронизированы при восстановлении связи.
+            </span>
           </div>
         )}
 
