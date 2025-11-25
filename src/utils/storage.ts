@@ -1,4 +1,4 @@
-import { AppData, Area, Feature, LaggingMetric, CustomMetric } from '../types';
+import { AppData, Area, Feature, LaggingMetric, CustomMetric, ProductLevelMetric } from '../types';
 
 const STORAGE_KEY = 'product_tree_data';
 
@@ -33,12 +33,13 @@ const createEmptyArea = (index: number): Area => ({
   goal: '',
   northStarMetric: '',
   laggingMetrics: [
-    { id: crypto.randomUUID(), name: '', value: '' },
-    { id: crypto.randomUUID(), name: '', value: '' },
-    { id: crypto.randomUUID(), name: '', value: '' },
+    { id: crypto.randomUUID(), name: '', value: '', linkedToProductMetrics: [] },
+    { id: crypto.randomUUID(), name: '', value: '', linkedToProductMetrics: [] },
+    { id: crypto.randomUUID(), name: '', value: '', linkedToProductMetrics: [] },
   ],
   features: Array.from({ length: 5 }, () => createEmptyFeature()),
   collapsed: false,
+  linkedToProductMetrics: [],
 });
 
 const getInitialData = (): AppData => ({
@@ -46,13 +47,13 @@ const getInitialData = (): AppData => ({
     vision: '',
     goal: '',
     nsm: '',
-    metrics: {
-      mau: '',
-      ltv: '',
-      payingUsers: '',
-      averageCheck: '',
-      retention: '',
-    },
+    metrics: [
+      { id: crypto.randomUUID(), name: 'MAU', value: '' },
+      { id: crypto.randomUUID(), name: 'LTV', value: '' },
+      { id: crypto.randomUUID(), name: 'Number of paying users', value: '' },
+      { id: crypto.randomUUID(), name: 'Average check', value: '' },
+      { id: crypto.randomUUID(), name: 'Retention', value: '' },
+    ],
   },
   areas: Array.from({ length: 10 }, (_, i) => createEmptyArea(i)),
   productLevelCollapsed: false,
@@ -94,6 +95,7 @@ export const addLaggingMetric = (areaId: string, data: AppData): AppData => {
     id: crypto.randomUUID(),
     name: '',
     value: '',
+    linkedToProductMetrics: [],
   };
   return {
     ...data,
@@ -133,5 +135,30 @@ export const addCustomTechMetric = (areaId: string, featureId: string, data: App
           }
         : area
     ),
+  };
+};
+
+export const addProductLevelMetric = (data: AppData): AppData => {
+  const newMetric: ProductLevelMetric = {
+    id: crypto.randomUUID(),
+    name: '',
+    value: '',
+  };
+  return {
+    ...data,
+    productLevel: {
+      ...data.productLevel,
+      metrics: [...data.productLevel.metrics, newMetric],
+    },
+  };
+};
+
+export const removeProductLevelMetric = (metricId: string, data: AppData): AppData => {
+  return {
+    ...data,
+    productLevel: {
+      ...data.productLevel,
+      metrics: data.productLevel.metrics.filter(m => m.id !== metricId),
+    },
   };
 };

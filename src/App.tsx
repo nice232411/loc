@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Save, Eye, RotateCcw, Grid3x3, LayoutList } from 'lucide-react';
 import { AppData, Area, Feature } from './types';
-import { loadData, saveData, addFeatureToArea, addLaggingMetric } from './utils/storage';
+import {
+  loadData,
+  saveData,
+  addFeatureToArea,
+  addLaggingMetric,
+  addProductLevelMetric,
+  removeProductLevelMetric,
+} from './utils/storage';
 import ProductLevel from './components/ProductLevel';
 import AreaItem from './components/AreaItem';
 import FilterPanel from './components/FilterPanel';
@@ -72,6 +79,14 @@ function App() {
 
   const handleAddLaggingMetricToArea = (areaId: string) => {
     setData(addLaggingMetric(areaId, data));
+  };
+
+  const handleAddProductLevelMetric = () => {
+    setData(addProductLevelMetric(data));
+  };
+
+  const handleRemoveProductLevelMetric = (metricId: string) => {
+    setData(removeProductLevelMetric(metricId, data));
   };
 
   const toggleProductLevelCollapse = () => {
@@ -246,6 +261,8 @@ function App() {
               collapsed={data.productLevelCollapsed}
               onChange={handleProductLevelChange}
               onToggleCollapse={toggleProductLevelCollapse}
+              onAddMetric={handleAddProductLevelMetric}
+              onRemoveMetric={handleRemoveProductLevelMetric}
             />
 
             {filteredAreas.length === 0 ? (
@@ -262,6 +279,7 @@ function App() {
                   onChange={(updated) => handleAreaChange(area.id, updated)}
                   onAddFeature={() => handleAddFeature(area.id)}
                   onAddLaggingMetric={() => handleAddLaggingMetricToArea(area.id)}
+                  productMetrics={data.productLevel.metrics}
                 />
               ))
             )}

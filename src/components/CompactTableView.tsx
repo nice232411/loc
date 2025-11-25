@@ -66,7 +66,7 @@ export default function CompactTableView({
       {/* Product Level Summary */}
       <div className="bg-blue-50 rounded-lg border-2 border-blue-500 p-3 overflow-x-auto">
         <div className="text-xs font-bold text-blue-900 mb-2">Product Level</div>
-        <div className="grid grid-cols-6 gap-2 text-xs">
+        <div className="grid grid-cols-3 gap-2 text-xs mb-3">
           <div className="truncate">
             <div className="font-semibold text-gray-600">Vision</div>
             <div className="text-gray-700 truncate">{data.productLevel.vision || '-'}</div>
@@ -79,17 +79,16 @@ export default function CompactTableView({
             <div className="font-semibold text-gray-600">NSM</div>
             <div className="text-gray-700 truncate">{data.productLevel.nsm || '-'}</div>
           </div>
-          <div className="truncate">
-            <div className="font-semibold text-gray-600">MAU</div>
-            <div className="text-gray-700 truncate">{data.productLevel.metrics.mau || '-'}</div>
-          </div>
-          <div className="truncate">
-            <div className="font-semibold text-gray-600">LTV</div>
-            <div className="text-gray-700 truncate">{data.productLevel.metrics.ltv || '-'}</div>
-          </div>
-          <div className="truncate">
-            <div className="font-semibold text-gray-600">Retention</div>
-            <div className="text-gray-700 truncate">{data.productLevel.metrics.retention || '-'}</div>
+        </div>
+        <div className="border-t border-blue-200 pt-2">
+          <div className="font-semibold text-gray-600 text-xs mb-2">Метрики:</div>
+          <div className="grid grid-cols-5 gap-2 text-xs">
+            {data.productLevel.metrics.map((metric) => (
+              <div key={metric.id} className="truncate">
+                <div className="font-semibold text-gray-600">{metric.name || '-'}</div>
+                <div className="text-gray-700 truncate">{metric.value || '-'}</div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

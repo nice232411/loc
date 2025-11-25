@@ -1,20 +1,21 @@
+export interface ProductLevelMetric {
+  id: string;
+  name: string;
+  value: string;
+}
+
 export interface ProductLevel {
   vision: string;
   goal: string;
   nsm: string;
-  metrics: {
-    mau: string;
-    ltv: string;
-    payingUsers: string;
-    averageCheck: string;
-    retention: string;
-  };
+  metrics: ProductLevelMetric[];
 }
 
 export interface LaggingMetric {
   id: string;
   name: string;
   value: string;
+  linkedToProductMetrics: string[];
 }
 
 export interface Area {
@@ -26,6 +27,7 @@ export interface Area {
   laggingMetrics: LaggingMetric[];
   features: Feature[];
   collapsed: boolean;
+  linkedToProductMetrics: string[];
 }
 
 export interface Feature {

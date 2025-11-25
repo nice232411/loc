@@ -1,15 +1,26 @@
-import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
-import { Area } from '../types';
+import { useState } from 'react';
+import { ChevronDown, ChevronRight, Plus, Link2 } from 'lucide-react';
+import { Area, ProductLevelMetric } from '../types';
 import FeatureItem from './FeatureItem';
+import MetricLinkModal from './MetricLinkModal';
 
 interface AreaItemProps {
   area: Area;
   onChange: (area: Area) => void;
   onAddFeature: () => void;
   onAddLaggingMetric: () => void;
+  productMetrics: ProductLevelMetric[];
 }
 
-export default function AreaItem({ area, onChange, onAddFeature, onAddLaggingMetric }: AreaItemProps) {
+export default function AreaItem({
+  area,
+  onChange,
+  onAddFeature,
+  onAddLaggingMetric,
+  productMetrics,
+}: AreaItemProps) {
+  const [showAreaLinkModal, setShowAreaLinkModal] = useState(false);
+  const [showLaggingLinkModal, setShowLaggingLinkModal] = useState<string | null>(null);
   const handleChange = (field: keyof Area, value: string) => {
     onChange({ ...area, [field]: value });
   };
@@ -19,6 +30,19 @@ export default function AreaItem({ area, onChange, onAddFeature, onAddLaggingMet
       ...area,
       laggingMetrics: area.laggingMetrics.map(m =>
         m.id === id ? { ...m, [field]: value } : m
+      ),
+    });
+  };
+
+  const handleAreaLinkSave = (linkedMetrics: string[]) => {
+    onChange({ ...area, linkedToProductMetrics: linkedMetrics });
+  };
+
+  const handleLaggingMetricLinkSave = (metricId: string, linkedMetrics: string[]) => {
+    onChange({
+      ...area,
+      laggingMetrics: area.laggingMetrics.map(m =>
+        m.id === metricId ? { ...m, linkedToProductMetrics: linkedMetrics } : m
       ),
     });
   };
@@ -102,6 +126,16 @@ export default function AreaItem({ area, onChange, onAddFeature, onAddLaggingMet
           </div>
 
           <div className="border-t pt-4">
+            <button
+              onClick={() => setShowAreaLinkModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Link2 size={18} />
+              Связь с метриками выше ({area.linkedToProductMetrics.length})
+            </button>
+          </div>
+
+          <div className="border-t pt-4">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-md font-bold text-gray-800">Lagging метрики</h4>
               <button
@@ -114,21 +148,31 @@ export default function AreaItem({ area, onChange, onAddFeature, onAddLaggingMet
             </div>
             <div className="space-y-2">
               {area.laggingMetrics.map((metric) => (
-                <div key={metric.id} className="grid grid-cols-2 gap-3">
-                  <input
-                    type="text"
-                    value={metric.name}
-                    onChange={(e) => handleLaggingMetricChange(metric.id, 'name', e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="Название метрики"
-                  />
-                  <input
-                    type="text"
-                    value={metric.value}
-                    onChange={(e) => handleLaggingMetricChange(metric.id, 'value', e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="Значение"
-                  />
+                <div key={metric.id} className="flex gap-3 items-center">
+                  <div className="flex-1 grid grid-cols-2 gap-3">
+                    <input
+                      type="text"
+                      value={metric.name}
+                      onChange={(e) => handleLaggingMetricChange(metric.id, 'name', e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="Название метрики"
+                    />
+                    <input
+                      type="text"
+                      value={metric.value}
+                      onChange={(e) => handleLaggingMetricChange(metric.id, 'value', e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="Значение"
+                    />
+                  </div>
+                  <button
+                    onClick={() => setShowLaggingLinkModal(metric.id)}
+                    className="flex items-center gap-1 px-2 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-xs whitespace-nowrap"
+                    title="Связь с метриками Product Level"
+                  >
+                    <Link2 size={14} />
+                    ({metric.linkedToProductMetrics.length})
+                  </button>
                 </div>
               ))}
             </div>
@@ -157,6 +201,34 @@ export default function AreaItem({ area, onChange, onAddFeature, onAddLaggingMet
             </div>
           </div>
         </div>
+      )}
+
+      {showAreaLinkModal && (
+        <MetricLinkModal
+          title={`Связь эрии "${area.name}" с метриками Product Level`}
+          availableMetrics={productMetrics}
+          linkedMetrics={area.linkedToProductMetrics}
+          onClose={() => setShowAreaLinkModal(false)}
+          onSave={handleAreaLinkSave}
+        />
+      )}
+
+      {showLaggingLinkModal && (
+        <MetricLinkModal
+          title="Связь lagging-метрики с метриками Product Level"
+          availableMetrics={productMetrics}
+          linkedMetrics={
+            area.laggingMetrics.find((m) => m.id === showLaggingLinkModal)
+              ?.linkedToProductMetrics || []
+          }
+          onClose={() => setShowLaggingLinkModal(null)}
+          onSave={(linkedMetrics) => {
+            if (showLaggingLinkModal) {
+              handleLaggingMetricLinkSave(showLaggingLinkModal, linkedMetrics);
+            }
+            setShowLaggingLinkModal(null);
+          }}
+        />
       )}
     </div>
   );

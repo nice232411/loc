@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, X } from 'lucide-react';
 import { ProductLevel as ProductLevelType } from '../types';
 
 interface ProductLevelProps {
@@ -6,17 +6,26 @@ interface ProductLevelProps {
   collapsed: boolean;
   onChange: (data: ProductLevelType) => void;
   onToggleCollapse: () => void;
+  onAddMetric: () => void;
+  onRemoveMetric: (metricId: string) => void;
 }
 
-export default function ProductLevel({ data, collapsed, onChange, onToggleCollapse }: ProductLevelProps) {
+export default function ProductLevel({
+  data,
+  collapsed,
+  onChange,
+  onToggleCollapse,
+  onAddMetric,
+  onRemoveMetric,
+}: ProductLevelProps) {
   const handleChange = (field: keyof ProductLevelType, value: string) => {
     onChange({ ...data, [field]: value });
   };
 
-  const handleMetricChange = (metric: keyof ProductLevelType['metrics'], value: string) => {
+  const handleMetricChange = (metricId: string, field: 'name' | 'value', value: string) => {
     onChange({
       ...data,
-      metrics: { ...data.metrics, [metric]: value },
+      metrics: data.metrics.map((m) => (m.id === metricId ? { ...m, [field]: value } : m)),
     });
   };
 
@@ -74,66 +83,52 @@ export default function ProductLevel({ data, collapsed, onChange, onToggleCollap
           </div>
 
           <div className="border-t pt-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">5 ключевых продуктовых метрик</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-800">Ключевые продуктовые метрики</h3>
+              <button
+                onClick={onAddMetric}
+                className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              >
+                <Plus size={16} />
+                Добавить метрику
+              </button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">MAU</label>
-                <input
-                  type="text"
-                  value={data.metrics.mau}
-                  onChange={(e) => handleMetricChange('mau', e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Значение MAU"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">LTV</label>
-                <input
-                  type="text"
-                  value={data.metrics.ltv}
-                  onChange={(e) => handleMetricChange('ltv', e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Значение LTV"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Number of paying users
-                </label>
-                <input
-                  type="text"
-                  value={data.metrics.payingUsers}
-                  onChange={(e) => handleMetricChange('payingUsers', e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Количество платящих пользователей"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Average check per paying user
-                </label>
-                <input
-                  type="text"
-                  value={data.metrics.averageCheck}
-                  onChange={(e) => handleMetricChange('averageCheck', e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Средний чек"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Retention</label>
-                <input
-                  type="text"
-                  value={data.metrics.retention}
-                  onChange={(e) => handleMetricChange('retention', e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Значение Retention"
-                />
-              </div>
+              {data.metrics.map((metric) => (
+                <div key={metric.id} className="relative bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <button
+                    onClick={() => onRemoveMetric(metric.id)}
+                    className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                    title="Удалить метрику"
+                  >
+                    <X size={16} />
+                  </button>
+                  <div className="mb-2">
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">
+                      Название метрики
+                    </label>
+                    <input
+                      type="text"
+                      value={metric.name}
+                      onChange={(e) => handleMetricChange(metric.id, 'name', e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Например: MAU"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">
+                      Значение
+                    </label>
+                    <input
+                      type="text"
+                      value={metric.value}
+                      onChange={(e) => handleMetricChange(metric.id, 'value', e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Введите значение"
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
