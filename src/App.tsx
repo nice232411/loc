@@ -90,7 +90,7 @@ function App() {
           setIsOnline(false);
         }
       }
-    }, 1000);
+    }, 2000);
 
     return () => {
       if (saveTimeoutRef.current) {
