@@ -32,6 +32,8 @@ function App() {
   const [isOnline, setIsOnline] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const isSyncing = useRef(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastUpdateRef = useRef<string>('');
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
@@ -43,7 +45,9 @@ function App() {
         setIsOnline(true);
 
         unsubscribe = subscribeToChanges((newData) => {
-          if (!isSyncing.current) {
+          const newDataString = JSON.stringify(newData);
+          if (lastUpdateRef.current !== newDataString) {
+            lastUpdateRef.current = newDataString;
             setData(newData);
           }
         });
@@ -67,23 +71,41 @@ function App() {
   useEffect(() => {
     if (isLoading) return;
 
-    const autoSave = setInterval(async () => {
-      isSyncing.current = true;
-      const success = await saveDataToSupabase(data);
-      isSyncing.current = false;
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
 
-      if (success) {
-        setLastSaved(new Date());
-        setIsOnline(true);
-      } else {
-        setIsOnline(false);
+    saveTimeoutRef.current = setTimeout(async () => {
+      const dataString = JSON.stringify(data);
+      if (lastUpdateRef.current !== dataString) {
+        lastUpdateRef.current = dataString;
+        isSyncing.current = true;
+        const success = await saveDataToSupabase(data);
+        isSyncing.current = false;
+
+        if (success) {
+          setLastSaved(new Date());
+          setIsOnline(true);
+        } else {
+          setIsOnline(false);
+        }
       }
-    }, 2000);
+    }, 1000);
 
-    return () => clearInterval(autoSave);
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
   }, [data, isLoading]);
 
   const handleSave = async () => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    const dataString = JSON.stringify(data);
+    lastUpdateRef.current = dataString;
     isSyncing.current = true;
     const success = await saveDataToSupabase(data);
     isSyncing.current = false;
