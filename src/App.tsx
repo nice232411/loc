@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Save, Eye, RotateCcw, Grid3x3, LayoutList, Cloud, CloudOff } from 'lucide-react';
+import { Save, Eye, Cloud, CloudOff } from 'lucide-react';
 import { AppData, Area, Feature } from './types';
 import {
   loadData,
@@ -19,15 +19,12 @@ import FilterPanel from './components/FilterPanel';
 import VisualizationView from './components/VisualizationView';
 import CompactTableView from './components/CompactTableView';
 
-type ViewMode = 'detailed' | 'compact';
-
 function App() {
   const [data, setData] = useState<AppData>(loadData());
   const [selectedArea, setSelectedArea] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('');
   const [showUnfilledOnly, setShowUnfilledOnly] = useState(false);
   const [showVisualization, setShowVisualization] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>('compact');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isOnline, setIsOnline] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
@@ -118,14 +115,6 @@ function App() {
     }
   };
 
-  const handleReset = async () => {
-    if (confirm('Вы уверены, что хотите сбросить все данные? Это действие нельзя отменить.')) {
-      const emptyData = loadData();
-      setData(emptyData);
-      await saveDataToSupabase(emptyData);
-      setLastSaved(null);
-    }
-  };
 
   const handleProductLevelChange = (productLevel: typeof data.productLevel) => {
     setData({ ...data, productLevel });
@@ -281,55 +270,18 @@ function App() {
             Визуализация
           </button>
 
-          <div className="flex gap-2 ml-auto">
-            <button
-              onClick={() => setViewMode('compact')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors shadow-md ${
-                viewMode === 'compact'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
-              }`}
-              title="Компактная таблица"
-            >
-              <Grid3x3 size={18} />
-            </button>
-            <button
-              onClick={() => setViewMode('detailed')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors shadow-md ${
-                viewMode === 'detailed'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
-              }`}
-              title="Подробный вид"
-            >
-              <LayoutList size={18} />
-            </button>
-          </div>
-
-          {viewMode === 'detailed' && (
-            <>
-              <button
-                onClick={collapseAll}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors shadow-md"
-              >
-                Свернуть всё
-              </button>
-
-              <button
-                onClick={expandAll}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors shadow-md"
-              >
-                Развернуть всё
-              </button>
-            </>
-          )}
+          <button
+            onClick={collapseAll}
+            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors shadow-md"
+          >
+            Свернуть всё
+          </button>
 
           <button
-            onClick={handleReset}
-            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-md"
+            onClick={expandAll}
+            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors shadow-md"
           >
-            <RotateCcw size={20} />
-            Сбросить
+            Развернуть всё
           </button>
         </div>
 
@@ -361,47 +313,35 @@ function App() {
           areas={data.areas.map((a) => ({ id: a.id, name: a.name }))}
         />
 
-        {viewMode === 'compact' ? (
-          <CompactTableView
-            data={data}
-            onAreaChange={handleAreaChange}
-            onFeatureChange={handleFeatureChange}
-            onAddFeature={handleAddFeature}
-            selectedArea={selectedArea}
-            selectedMonth={selectedMonth}
-            showUnfilledOnly={showUnfilledOnly}
+        <div className="space-y-6">
+          <ProductLevel
+            data={data.productLevel}
+            collapsed={data.productLevelCollapsed}
+            onChange={handleProductLevelChange}
+            onToggleCollapse={toggleProductLevelCollapse}
+            onAddMetric={handleAddProductLevelMetric}
+            onRemoveMetric={handleRemoveProductLevelMetric}
           />
-        ) : (
-          <div className="space-y-6">
-            <ProductLevel
-              data={data.productLevel}
-              collapsed={data.productLevelCollapsed}
-              onChange={handleProductLevelChange}
-              onToggleCollapse={toggleProductLevelCollapse}
-              onAddMetric={handleAddProductLevelMetric}
-              onRemoveMetric={handleRemoveProductLevelMetric}
-            />
 
-            {filteredAreas.length === 0 ? (
-              <div className="bg-white rounded-lg shadow-md p-8 text-center">
-                <p className="text-gray-600">
-                  Нет эрий, соответствующих выбранным фильтрам
-                </p>
-              </div>
-            ) : (
-              filteredAreas.map((area) => (
-                <AreaItem
-                  key={area.id}
-                  area={area}
-                  onChange={(updated) => handleAreaChange(area.id, updated)}
-                  onAddFeature={() => handleAddFeature(area.id)}
-                  onAddLaggingMetric={() => handleAddLaggingMetricToArea(area.id)}
-                  productMetrics={data.productLevel.metrics}
-                />
-              ))
-            )}
-          </div>
-        )}
+          {filteredAreas.length === 0 ? (
+            <div className="bg-white rounded-lg shadow-md p-8 text-center">
+              <p className="text-gray-600">
+                Нет эрий, соответствующих выбранным фильтрам
+              </p>
+            </div>
+          ) : (
+            filteredAreas.map((area) => (
+              <AreaItem
+                key={area.id}
+                area={area}
+                onChange={(updated) => handleAreaChange(area.id, updated)}
+                onAddFeature={() => handleAddFeature(area.id)}
+                onAddLaggingMetric={() => handleAddLaggingMetricToArea(area.id)}
+                productMetrics={data.productLevel.metrics}
+              />
+            ))
+          )}
+        </div>
 
         {showVisualization && (
           <VisualizationView data={data} onClose={() => setShowVisualization(false)} />
