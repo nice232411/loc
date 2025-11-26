@@ -95,32 +95,30 @@ export default function VisualizationView({ data, onClose }: VisualizationViewPr
               {area.laggingMetrics.some((m) => m.name || m.value) && (
                 <div className="mb-4">
                   <p className="text-sm font-semibold text-gray-600 mb-2">Lagging Metrics:</p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {area.laggingMetrics
                       .filter((m) => m.name || m.value)
                       .map((metric) => (
-                        <div key={metric.id} className="bg-white rounded p-3 border border-green-200">
-                          <div className="flex flex-col gap-1">
-                            <div className="flex justify-between items-start gap-2">
-                              <p className="font-semibold text-sm text-gray-800 flex-1">
-                                {metric.name || '—'}
-                              </p>
-                              {metric.linkedToProductMetrics.length > 0 && (
-                                <div className="flex flex-wrap gap-1">
-                                  {metric.linkedToProductMetrics.map((metricId) => (
-                                    <span
-                                      key={metricId}
-                                      className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded text-[10px]"
-                                      title={`Влияет на: ${getMetricNameById(metricId)}`}
-                                    >
-                                      <ArrowUp size={10} />
-                                      {getMetricNameById(metricId).substring(0, 3)}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
+                        <div key={metric.id} className="bg-white rounded p-2 border border-green-200">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="text-xs text-gray-600">{metric.name || '—'}</p>
+                              <p className="font-semibold text-sm">{metric.value || '—'}</p>
                             </div>
-                            <p className="text-xs text-gray-600">{metric.value || '—'}</p>
+                            {metric.linkedToProductMetrics.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {metric.linkedToProductMetrics.map((metricId) => (
+                                  <span
+                                    key={metricId}
+                                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded text-[10px]"
+                                    title={`Влияет на: ${getMetricNameById(metricId)}`}
+                                  >
+                                    <ArrowUp size={10} />
+                                    {getMetricNameById(metricId).substring(0, 3)}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}
