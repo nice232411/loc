@@ -56,7 +56,7 @@ export default function AreaItem({
 
   const availableMetrics = [
     area.northStarMetric,
-    ...area.laggingMetrics.map(m => m.name).filter(Boolean),
+    ...area.laggingMetrics.map(m => m.name),
   ].filter(Boolean);
 
   return (
