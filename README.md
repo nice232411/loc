@@ -30,52 +30,18 @@ cd <название-проекта>
 npm install
 ```
 
-### 3. Настройка Supabase
+### 3. Настройка переменных окружения
 
-Создайте файл `.env` в корне проекта и добавьте данные вашего Supabase проекта:
+Создайте файл `.env` в корне проекта и добавьте предоставленные данные Supabase:
 
 ```env
-VITE_SUPABASE_URL=https://ваш-проект.supabase.co
-VITE_SUPABASE_ANON_KEY=ваш-анон-ключ
+VITE_SUPABASE_URL=https://gpjvgtzslgcgeiqywbvp.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdwanZndHpzbGdjZ2VpcXl3YnZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxMzU0NTcsImV4cCI6MjA3OTcxMTQ1N30.nJVGI_SXqvt3MW1R40zTs2DsAxA7LHWdqOLPmeUiDcc
 ```
 
-**Где взять данные:**
-1. Зайдите в [Supabase Dashboard](https://supabase.com/dashboard)
-2. Создайте новый проект или откройте существующий
-3. Перейдите в Settings → API
-4. Скопируйте `Project URL` и `anon public` ключ
+База данных уже настроена и готова к работе - ничего дополнительно настраивать не нужно!
 
-### 4. Применение миграций базы данных
-
-Миграции находятся в папке `supabase/migrations/`. Примените их через Supabase Dashboard:
-
-1. Откройте SQL Editor в вашем проекте Supabase
-2. Выполните содержимое файла `supabase/migrations/20251126140732_create_product_tree_table.sql`
-
-Или используйте Supabase CLI:
-
-```bash
-# Установка Supabase CLI (если не установлен)
-npm install -g supabase
-
-# Подключение к проекту
-supabase link --project-ref ваш-проект-ref
-
-# Применение миграций
-supabase db push
-```
-
-### 5. Включение Realtime
-
-Для работы реал-тайм синхронизации выполните в SQL Editor:
-
-```sql
-ALTER PUBLICATION supabase_realtime ADD TABLE product_tree_data;
-```
-
-### 6. Запуск проекта
-
-#### Режим разработки
+### 4. Запуск проекта
 
 ```bash
 npm run dev
@@ -90,12 +56,6 @@ npm run build
 ```
 
 Готовые файлы будут в папке `dist/`
-
-#### Предпросмотр продакшен сборки
-
-```bash
-npm run preview
-```
 
 ## Деплой
 
