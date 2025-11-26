@@ -271,11 +271,21 @@ export default function FeatureItem({ feature, onChange, availableMetrics }: Fea
                 return null;
               })}
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">
-                    Time to Interaction (Fact)
+                    Time to Interaction (Plan)
                   </label>
+                  <input
+                    type="text"
+                    value={feature.techMetrics.timeToInteraction.plan}
+                    onChange={(e) => handleTechMetricChange('timeToInteraction', 'plan', e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                    placeholder="План"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Fact</label>
                   <input
                     type="text"
                     value={feature.techMetrics.timeToInteraction.fact}

@@ -17,7 +17,7 @@ const createEmptyFeature = (): Feature => ({
     releaseProcessSpeed: { plan: '', fact: '', deviation: '' },
     bugWeight: { plan: '', fact: '', deviation: '' },
     serviceUptime: { plan: '', fact: '', deviation: '' },
-    timeToInteraction: { fact: '', deviation: '' },
+    timeToInteraction: { plan: '', fact: '', deviation: '' },
     customMetrics: [],
   },
   linkedMetrics: [],

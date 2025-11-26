@@ -54,7 +54,7 @@ export interface TechMetrics {
   releaseProcessSpeed: PlanFactDeviation;
   bugWeight: PlanFactDeviation;
   serviceUptime: PlanFactDeviation;
-  timeToInteraction: FactDeviation;
+  timeToInteraction: PlanFactDeviation;
   customMetrics: CustomMetric[];
 }
 
